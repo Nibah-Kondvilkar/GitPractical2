@@ -1,1 +1,141 @@
-this is java file
+------naive-----------
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import GaussianNB
+from sklearn.metrics import accuracy_score, confusion_matrix, classification_report
+from matplotlib.colors import ListedColormap
+
+iris = load_iris()
+df = pd.DataFrame(data=iris.data, columns=iris.feature_names)
+df['target'] = iris.target
+df['species'] = df['target'].apply(lambda x: iris.target_names[x])
+
+print(" ===== Dataset Info ===== ")
+print(df.info())
+print("\n ===== First 5 Rows ===== ")
+print(df.head())
+print("\n ===== Class Distribution ===== ")
+print(df['species'].value_counts())
+
+plt.figure(figsize=(12,6))
+sns.histplot(df, x="sepal length (cm)", hue="species", kde=True)
+plt.title("Sepal Length Distribution by Species")
+plt.show()
+
+plt.figure(figsize=(12,6))
+sns.pairplot(df, hue="species", corner=True)
+plt.suptitle("Pairplot of Iris Features", y=1.02)
+plt.show()
+
+plt.figure(figsize=(8,6))
+sns.heatmap(df.corr(numeric_only=True),annot=True, cmap='coolwarm')
+plt.title("Correlation Heatmap of Iris Features")
+plt.show()
+
+X = df[iris.feature_names]
+y = df['target']
+X_train, X_test, y_train, y_test = train_test_split(X,y, test_size=0.3, random_state=42)
+
+model = GaussianNB()
+model.fit(X_train, y_train)
+
+y_pred = model.predict(X_test)
+
+print("\n===== Model Evaluation =====")
+print("Accuracy:", round(accuracy_score(y_test, y_pred), 3))
+print("\nConfusion Matrix:\n", confusion_matrix(y_test, y_pred))
+print("\nClassification Report:\n", classification_report(y_test, y_pred))
+
+plt.figure(figsize=(6,5))
+cm = confusion_matrix(y_test, y_pred)
+sns.heatmap(cm, annot=True, cmap="Blues", fmt="d",
+            xticklabels=iris.target_names,
+            yticklabels=iris.target_names)
+plt.xlabel("Predicted")
+plt.ylabel("Actual")
+plt.title("Confusion Matrix Heatmap")
+plt.show()
+
+X_vis = df[['sepal length (cm)', 'sepal width (cm)']].values
+y_vis = df['target'].values
+
+model_vis = GaussianNB()
+model_vis.fit(X_vis, y_vis)
+
+x_min, x_max = X_vis[:,0].min() - 1, X_vis[:,0].max() + 1
+y_min, y_max = X_vis[:,1].min() - 1, X_vis[:,1].max() + 1
+xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.1),
+                     np.arange(y_min, y_max, 0.1))
+
+Z = model_vis.predict(np.c_[xx.ravel(),yy.ravel()])
+Z = Z.reshape(xx.shape)
+
+plt.figure(figsize=(10,6))
+colors = ListedColormap(['#FFAAAA', '#AAFFAA', '#AAAAFF'])
+plt.contourf(xx, yy, Z, alpha=0.4, cmap=colors)
+plt.scatter(X_vis[:,0], X_vis[:,1], c=y_vis, s=40, edgecolor='k', cmap=colors)
+plt.xlabel("Sepal Length (cm)")
+plt.ylabel("Sepal Width (cm)")
+plt.title("Naive Bayes Decision Boundary (2 Features)")
+plt.show()
+
+
+-------------logistic------------------
+import pandas as pd
+
+d = {'miles_per_week': [37,39,46,51,88,17,18,20,21,22,23,24,25,27,28,29,30,31,32,33,34,38,40,42,57,68,35,36,41,43,45,47,49,50,52,53,54,55,56,58,59,60,61,63,64,65,66,69,70,72,73,75,76,77,78,80,81,82,83,84,85,86,87,89,91,92,93,95,96,97,98,99,100,101,102,103,104,105,106,107,109,110,111,113,114,115,116,116,118,119,120,121,123,124,126,62,67,74,79,90,112],
+'completed_50m_ultra': ['no','no','no','no','no','no','no','no','no','no','no','no','no','no','no','no','no','no','no','no','no','no','no','no','no','no','yes','yes','yes','yes','no','yes','yes','yes','no','yes','yes','yes','yes','yes','yes','yes','yes','no','yes','yes','yes','yes','yes','yes','yes','no','yes','yes','yes','yes','yes','yes','yes','no','yes','yes','yes','yes','yes','yes','yes','no','yes','yes','yes','yes','yes','yes','yes','yes','yes','yes','yes','yes','yes','yes','yes','yes','yes','yes','yes','yes','yes','yes','yes','yes','yes','yes','yes','yes','yes','yes','yes','yes','yes',]}
+
+df = pd.DataFrame(data=d)
+
+df.head()
+
+from sklearn.preprocessing import OrdinalEncoder 
+
+finished_race = ['yes', 'no']
+
+enc = OrdinalEncoder(categories=[finished_race])
+
+df['completed_50m_ultra'] = enc.fit_transform(df[['completed_50m_ultra']])
+
+df.head()
+
+from matplotlib import pyplot as plt 
+
+plt.scatter(df['miles_per_week'], df['completed_50m_ultra'])
+
+import seaborn as sns
+
+sns.countplot(x='completed_50m_ultra', data=df)
+
+x = df.iloc[:,0:1] 
+y = df.iloc[:,1]
+
+from sklearn.model_selection import train_test_split
+x_train, x_test, y_train, y_test = train_test_split(x,y,train_size = 0.8,random_state=11)
+
+x_test.shape
+
+from sklearn.linear_model import LogisticRegression
+
+model = LogisticRegression()
+
+model.fit(x_train,y_train)
+
+y_pred = model.predict(x_test)
+
+model.score(x_test,y_test)
+
+from sklearn.metrics import confusion_matrix
+
+print(confusion_matrix(y_test,y_pred))
+
+from sklearn.metrics import classification_report
+
+print(classification_report(y_test,y_pred))
+
