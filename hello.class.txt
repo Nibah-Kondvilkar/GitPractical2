@@ -1,1 +1,251 @@
-this is class file
+-----clustering-----------
+import math
+
+points = {
+  "A" : (1,1),
+  "B" : (2,1),
+  "C" : (1,2),
+  "D" : (8,8),
+  "E" : (9,8),
+  "F" : (8,9)
+}
+
+c1 = (1,1)
+c2 = (8,8)
+
+cluster1 = []
+cluster2 = []
+
+for name, p in points.items():
+  d1 = math.dist(p, c1)
+  d2 = math.dist(p, c2)
+  if d1 < d2:
+    cluster1.append(name)
+  else:
+    cluster2.append(name)
+
+print("Cluster 1:", cluster1)
+print("Cluster 2:", cluster2)
+
+
+-----linera regression----------
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score, mean_squared_error
+
+df = pd.read_csv("quikr_car.csv")
+df
+
+print("Dataset Shape:", df.shape)
+
+print("\nFirst 5 Rows:\n", df.head())
+
+print("\nInfo:\n")
+print(df.info())
+
+df=df[df["year"].str.isnumeric()]
+
+df["year"]=df["year"].astype(int)
+
+df=df[df['Price']!='Ask For Price']
+
+df["kms_driven"]=df["kms_driven"].str.split().str.get(0).str.replace(',','')
+
+df=df[df['kms_driven'].str.isnumeric()]
+
+df["kms_driven"]=df["kms_driven"].astype(int)
+
+df=df[~df['fuel_type'].isna()]
+
+df.shape
+
+df['name']=df['name'].str.split().str.slice(start=0,stop=3).str.join('')
+
+df=df.reset_index(drop=True)
+
+df
+
+df.describe(include='all')
+
+df['Price']=df['Price'].str.replace(',','').astype(int)
+
+df.describe
+
+df.info()
+
+df=df[df['Price']<6000000]
+
+df['company'].unique()
+
+plt.subplots(figsize=(15,7))
+ax=sns.boxplot(x='company',y='Price',data=df)
+ax.set_xticklabels(ax.get_xticklabels(),rotation=40,ha='right')
+plt.show()
+
+plt.subplots(figsize=(15,7))
+ax=sns.boxplot(x='year',y='Price',data=df)
+ax.set_xticklabels(ax.get_xticklabels(),rotation=40,ha='right')
+plt.show()
+
+plt.subplots(figsize=(15,7))
+ax=sns.swarmplot(x='year',y='Price',data=df)
+ax.set_xticklabels(ax.get_xticklabels(),rotation=40,ha='right')
+plt.show()
+
+X = df[["company", "year", "kms_driven", "fuel_type"]]
+y = df["Price"]
+
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder, StandardScaler, OneHotEncoder, PolynomialFeatures
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import r2_score, mean_absolute_error, mean_squared_error
+from sklearn.compose import ColumnTransformer
+ct = ColumnTransformer(
+    transformers=[
+        ("encoder", OneHotEncoder(drop="first"), ["company", "fuel_type"])
+    ],
+    remainder="passthrough"
+)
+X_encoded = ct.fit_transform(X)
+
+scaler = StandardScaler(with_mean=False)  # Fix for sparse matrix
+X_scaled = scaler.fit_transform(X_encoded)
+
+x_train, x_test, y_train, y_test = train_test_split(
+    X_scaled, y, test_size=0.2, random_state=42
+)
+
+poly = PolynomialFeatures(degree=2, include_bias=False)
+x_train_poly = poly.fit_transform(x_train)
+x_test_poly = poly.transform(x_test)
+
+model = LinearRegression()
+model.fit(x_train_poly, y_train)
+
+y_pred = model.predict(x_test_poly)
+r2 = r2_score(y_test, y_pred)
+mae = mean_absolute_error(y_test, y_pred)
+mse = mean_squared_error(y_test, y_pred)
+rmse = np.sqrt(mse)
+print("\nModel Performance After Improvements:")
+print(f"R² Score: {r2:.4f}")
+print(f"Mean Absolute Error (MAE): {mae:.2f}")
+print(f"Mean Squared Error (MSE): {mse:.2f}")
+print(f"Root Mean Squared Error (RMSE): {rmse:.2f}")
+
+plt.figure(figsize=(8, 6))
+plt.scatter(y_test, y_pred, alpha=0.6)
+plt.xlabel("Actual Prices")
+plt.ylabel("Predicted Prices")
+plt.title("Actual vs Predicted Car Prices (Improved Model)")
+plt.grid(True)
+plt.show()
+
+
+
+
+----------------fuzzylogic-----------
+def triangular(x, a,b, c):
+  if x <= a or x >= c:
+    return 0
+  elif x==b:
+    return 1
+  elif x< b:
+    return (x-a)/(b-a)
+  else:
+    return (c-x)/(c-b)
+x=7
+mu = triangular(x,0,0,10)
+print("Membership of", x, "=", mu)
+
+
+--------------------knnn-----------------
+import pandas as pd
+from sklearn.datasets import load_iris
+iris = load_iris()
+
+iris.feature_names
+['sepal length(cm)',
+ 'sepal width(cm)',
+ 'petal length(cm)',
+ 'petal width(cm)',]
+
+iris.target_names
+
+df = pd.DataFrame(iris.data, columns=iris.feature_names)
+df.head()
+
+df['target'] = iris.target
+df.head()
+
+df[45:55]
+
+df.columns
+
+df["flower_name"] = df.target.apply(lambda x: iris.target_names[x])
+df.head()
+
+df0 = df[:50]
+df1 = df[50:100]
+df2 = df[100:]
+
+import matplotlib.pyplot as plt
+# %matplotlib inline
+
+plt.xlabel('Sepal Length')
+plt.ylabel('Sepal Width')
+plt.scatter(df0['sepal length (cm)'], df0['sepal width (cm)'], color="green", marker='.')
+plt.scatter(df1['sepal length (cm)'], df1['sepal width (cm)'], color="blue", marker='.')
+
+plt.xlabel('Petal Length')
+plt.ylabel('Petal Width')
+plt.scatter(df0["petal length (cm)"], df0["petal width (cm)"], color="green", marker="+")
+plt.scatter(df1["petal length (cm)"], df1["petal width (cm)"], color="blue", marker=".")
+
+from sklearn.model_selection import train_test_split
+X = df.drop(["target", "flower_name"], axis=1)
+y = df["target"]
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1)
+len(X_train)
+len(X_test)
+
+from sklearn.neighbors import KNeighborsClassifier
+knn = KNeighborsClassifier(n_neighbors=10)
+
+knn.fit(X_train, y_train)
+
+knn.score(X_test, y_test)
+
+knn.predict([[4.8, 3.0, 1.5, 0.3]])
+
+from sklearn.metrics import confusion_matrix
+y_pred = knn.predict(X_test)
+cm = confusion_matrix(y_test, y_pred)
+cm
+
+%matplotlib inline
+import seaborn as sns
+import matplotlib.pyplot as plt
+plt.figure(figsize=(7, 5))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Reds')
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.title('Confusion Matrix')
+plt.show()
+
+from sklearn.metrics import classification_report
+print(classification_report(y_test, y_pred))
+
+
+
+
+
+
+
+
+
